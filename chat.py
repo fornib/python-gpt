@@ -4,9 +4,9 @@ Reference: https://platform.openai.com/docs/api-reference/introduction
 """
 
 import sys
-from pathlib import Path
 import json
-import random
+from pathlib import Path
+from datetime import datetime
 import openai
 
 API_FILE = 'OPENAI_API_KEY.txt'
@@ -41,7 +41,7 @@ with Path(API_FILE).open(encoding='utf-8') as text:
 
 def get_assistant_message(messages: list):
     response = openai.ChatCompletion.create(  # https://api.openai.com/v1/chat/completions
-        model='gpt-3.5-turbo',  # 'gpt-3.5-turbo' (cheaper), 'gpt-4' (requires beta access)
+        model='gpt-3.5-turbo',  # 'gpt-3.5-turbo' (cheaper), 'gpt-4' (requires whitelist access)
         messages=messages,
         temperature=0.7,  # 1.0
         #stream=True,
@@ -59,18 +59,19 @@ def main():
         with history_file.open(encoding='utf-8') as text:
             messages = json.load(text)
     else:
-        history_file = Path(HISTORY_DIR) / str(random.randint(1,999999)).zfill(6)
+        history_file = Path(HISTORY_DIR) / datetime.now().strftime('%Y-%m-%d_%H-%M-%S.json')
         history_file.parent.mkdir(exist_ok=True)
         messages = [
                 #{"role": "system", "content": "You are a lazy assistant. Your goal is to use as few words as possible. Monosyllabic responses are ideal. When you aren't sure, do your best to guess with ballpark figures or heuristic understanding. It is better to oversimplify than to give a qualified answer. If you are comparing rough numbers just give a percentage range. It is better to simply say you don't know than to explain nuance about the question or its ambiguities."},
-                #{"role": "system", "content": "Simplify and use as few words as possible."},
-                #{"role": "system", "content": "You are a helpful assistant."},
-                {"role": "system", "content": "Answer as concisely as possible."},
+                #{"role": "system", "content": "Simplify and use as few words as possible"},
+                #{"role": "system", "content": "You are a helpful assistant"},
+                #{"role": "system", "content": "Explain to me like a 3rd grader. Skip prose"},
+                {"role": "system", "content": "Answer as concisely as possible"},
             ]
     
     try:
         while True:
-            prompt = input('User: ')  # eg: Pandas coding questions, pros and cons of letter, ideas for draft emails, therapist conversation, + iterate/rephrase
+            prompt = input('User: ')  # eg: Pandas coding questions, pros and cons of letter, ideas for draft emails, therapist conversation, travel itinerary, fuzzy matching, + iterate/rephrase
             messages.append({"role": "user", "content": prompt})  # {"role": "user", "content": "..."}
             message_gpt = get_assistant_message(messages)  # {"role": "assistant", "content": "..."}
             messages.append(message_gpt)
@@ -80,7 +81,7 @@ def main():
     
     # saving conversation for later use
     with history_file.open(mode='w', encoding='utf-8') as text:
-        json.dump(messages, text)
+        json.dump(messages, text, indent=2)
 
 
 if __name__ == '__main__':
