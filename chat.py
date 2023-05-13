@@ -45,7 +45,7 @@ def get_assistant_message(messages: list):
         messages=messages,
         temperature=0.7,  # 1.0
         #stream=True,
-        max_tokens=128,  # 64, defaults to inf / 4096
+        max_tokens=512,  # 128, defaults to inf (=4096)
         )
     # print(str(response).replace('\n',''))
     # for response in response_stream:
@@ -65,24 +65,24 @@ def main():
                 #{"role": "system", "content": "You are a lazy assistant. Your goal is to use as few words as possible. Monosyllabic responses are ideal. When you aren't sure, do your best to guess with ballpark figures or heuristic understanding. It is better to oversimplify than to give a qualified answer. If you are comparing rough numbers just give a percentage range. It is better to simply say you don't know than to explain nuance about the question or its ambiguities."},
                 #{"role": "system", "content": "Simplify and use as few words as possible"},
                 #{"role": "system", "content": "You are a helpful assistant"},
-                #{"role": "system", "content": "Explain to me like a 3rd grader. Skip prose"},
-                {"role": "system", "content": "Answer as concisely as possible"},
+                #{"role": "system", "content": "You are a helpful and concise assistant"},
+                #{"role": "system", "content": "Explain to me like a 3rd grader. Minimize prose."},
+                #{"role": "system", "content": "Answer as concisely as possible"},
+                {"role": "system", "content": "Keep your answers short and impersonal. Use Markdown formatting.\
+                 Also generate short suggestions for the next user turn that are relevant to the conversation."},
             ]
-    
-    try:
-        while True:
-            prompt = input('User: ')  # eg: Pandas coding questions, pros and cons of letter, ideas for draft emails, therapist conversation, travel itinerary, fuzzy matching, + iterate/rephrase
-            messages.append({"role": "user", "content": prompt})  # {"role": "user", "content": "..."}
-            message_gpt = get_assistant_message(messages)  # {"role": "assistant", "content": "..."}
-            messages.append(message_gpt)
-            print('Assistant:', message_gpt.content)
-    except KeyboardInterrupt:
-        print("\nEnd.")
-    
-    # saving conversation for later use
-    with history_file.open(mode='w', encoding='utf-8') as text:
-        json.dump(messages, text, indent=2)
 
+    while True:
+        prompt = input('User: ')  # eg: Pandas coding questions, pros and cons of letter, ideas for draft emails, therapist conversation, travel itinerary, fuzzy matching, + iterate/rephrase
+        messages.append({"role": "user", "content": prompt})  # {"role": "user", "content": "..."}
+        message_gpt = get_assistant_message(messages)  # {"role": "assistant", "content": "..."}
+        messages.append(message_gpt)
+        print('Assistant:', message_gpt.content)
+
+        # saving conversation for later use
+        with history_file.open(mode='w', encoding='utf-8') as text:
+            json.dump(messages, text, indent=2)
+            
 
 if __name__ == '__main__':
     main()
